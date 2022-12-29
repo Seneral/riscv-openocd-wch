@@ -28,6 +28,9 @@
 #include "program.h"
 #include "asm.h"
 #include "batch.h"
+#define RVFNIC_CTRLR 0xE000E048
+#define NVIC_KEY 0xBEEF0000
+
 extern unsigned char	DMI_OP( 
 	unsigned long	iIndex,  
 	unsigned char	iAddr,       
@@ -291,16 +294,16 @@ static int flush_flash_data(struct target *target)
 	//write 
 	if(info->flash_len)
 	{	
-		execute_fence(target);
-		register_read_direct(target, &a0, GDB_REGNO_A0);					
-		register_read_direct(target, &s0, GDB_REGNO_S0);
-		register_read_direct(target, &ra, GDB_REGNO_RA);
-		register_read_direct(target, &sp, GDB_REGNO_SP);
-		register_read_direct(target, &gp, GDB_REGNO_GP);		
-		register_read_direct(target, &t0, GDB_REGNO_T0);
-		register_read_direct(target, &t1, GDB_REGNO_T1);
-	    register_read_direct(target, &t2, GDB_REGNO_T2);
-		register_read_direct(target, &t3, GDB_REGNO_T3);		
+		execute_fence(target);					
+	    register_read_direct(target, &a0, GDB_REGNO_A0);					
+		// register_read_direct(target, &s0, GDB_REGNO_S0);
+		// register_read_direct(target, &ra, GDB_REGNO_RA);
+		// register_read_direct(target, &sp, GDB_REGNO_SP);
+		// register_read_direct(target, &gp, GDB_REGNO_GP);		
+		// register_read_direct(target, &t0, GDB_REGNO_T0);
+		// register_read_direct(target, &t1, GDB_REGNO_T1);
+	    // register_read_direct(target, &t2, GDB_REGNO_T2);
+		// register_read_direct(target, &t3, GDB_REGNO_T3);		
 		register_read_direct(target, &s1, GDB_REGNO_S1); 
 		register_read_direct(target, &a1, GDB_REGNO_A1);
 		register_read_direct(target, &a2, GDB_REGNO_A2);
@@ -308,20 +311,19 @@ static int flush_flash_data(struct target *target)
 		register_read_direct(target, &a4, GDB_REGNO_A4);	
 		WriteNonFullPage(info->flash_start_addr,info->flash_data,info->flash_len);	
 	    register_write_direct(target, GDB_REGNO_A0, a0);	
-		register_write_direct(target, GDB_REGNO_S0, s0);
-		register_write_direct(target, GDB_REGNO_RA, ra);
-		register_write_direct(target, GDB_REGNO_SP, sp);
-		register_write_direct(target, GDB_REGNO_GP, gp);		
-		register_write_direct(target, GDB_REGNO_T0, t0);
-		register_write_direct(target, GDB_REGNO_T1, t1);
-		register_write_direct(target, GDB_REGNO_T2, t2);
-		register_write_direct(target, GDB_REGNO_T3, t3);
+		// register_write_direct(target, GDB_REGNO_S0, s0);
+		// register_write_direct(target, GDB_REGNO_RA, ra);
+		// register_write_direct(target, GDB_REGNO_SP, sp);
+		// register_write_direct(target, GDB_REGNO_GP, gp);		
+		// register_write_direct(target, GDB_REGNO_T0, t0);
+		// register_write_direct(target, GDB_REGNO_T1, t1);
+		// register_write_direct(target, GDB_REGNO_T2, t2);
+		// register_write_direct(target, GDB_REGNO_T3, t3);
 		register_write_direct(target, GDB_REGNO_S1, s1);
 		register_write_direct(target, GDB_REGNO_A1, a1);
 		register_write_direct(target, GDB_REGNO_A2, a2);
 		register_write_direct(target, GDB_REGNO_A3, a3);
-		register_write_direct(target, GDB_REGNO_A4, a4);						
-			
+		register_write_direct(target, GDB_REGNO_A4, a4);		
 	info->flash_start_addr = 0;
 	info->flash_len = 0;
 	info->flash_offset = 0;
@@ -624,6 +626,7 @@ static int wlink_dmi_op_timeout(struct target *target, uint32_t *data_in,
 			result=DMI_OP(0, (unsigned char	)address, 0, (unsigned char	)dmi_op, &address_in, data_in,&recvOP);
 			if(!result){
 					LOG_ERROR("failed %s at 0x%x, status=%d", op_name, address, status);
+					LOG_ERROR("Maybe the device has been removed");
 					server_quit();
 					return ERROR_FAIL;
 				}		
@@ -882,11 +885,11 @@ int dmstatus_read_timeout(struct target *target, uint32_t *dmstatus,
 {
 	int result = dmi_op_timeout(target, dmstatus, NULL, DMI_OP_READ,
 			DM_DMSTATUS, 0, timeout_sec, false, true);
-	
 	if (result != ERROR_OK)
 		return result;
 	int dmstatus_version = get_field(*dmstatus, DM_DMSTATUS_VERSION);
 	if (dmstatus_version != 2 && dmstatus_version != 3) {
+		
 		LOG_ERROR("OpenOCD only supports Debug Module version 2 (0.13) and 3 (1.0), not "
 				"%d (dmstatus=0x%x). This error might be caused by a JTAG "
 				"signal issue. Try reducing the JTAG clock speed.",
@@ -4240,9 +4243,9 @@ static int write_memory(struct target *target, target_addr_t address,
 				}
 			}
 								
-			write_flash_data(target, flashaddress, size, count, buffer);			
+			//write_flash_data(target, flashaddress, size, count, buffer);			
 		}				
-		if((riscvchip==0x01)||(riscvchip==0x02)||(riscvchip==0x06))
+		if((riscvchip==0x01)||(riscvchip==0x02)||(riscvchip==0x06)||(riscvchip==0x05))
 		{			
 			write_flash_data(target, address, size, count, buffer);			
 		}

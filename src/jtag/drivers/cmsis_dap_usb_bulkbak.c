@@ -664,11 +664,11 @@ int wlink_armcheckprotect(void)
 
 	uint8_t buffer_clk[] = { 0x81, 0x0c, 0x02, 0x08, 0x01};
 	uint8_t buffer_code[] = {0x81, 0x06, 0x01, 0x01};
-	uint8_t buffer_rcode[4];
+	uint8_t buffer_rcode[4];	
 	if (armchip == 1)
 		buffer_clk[3] = 0x04;
 	if (armchip == 2)
-		buffer_clk[3] = 0x08;	
+		buffer_clk[3] = 0x08;
 	libusb_bulk_transfer(wlink_dev_handle, 0x02,buffer_clk,sizeof(buffer_code),&transferred,timeout);
 	libusb_bulk_transfer(wlink_dev_handle, 0x83,buffer_rcode,sizeof(buffer_rcode),&transferred,timeout);
 	// hid_write(wlink_dev_handle, buffer_clk, 65);
@@ -689,11 +689,33 @@ int wlink_armcheckprotect(void)
 }
 int wlink_armerase(void)
 {
-	uint8_t buffer_code[] = { 0x81, 0x02, 0x01, 0x05};
+	uint8_t test_code[] = { 0x81, 0x11, 0x01, 0x04};
+	uint8_t test_code1[20];
 	int transferred=0;
+
+	libusb_bulk_transfer(wlink_dev_handle, 0x02,test_code,sizeof(test_code),&transferred,timeout);
+	libusb_bulk_transfer(wlink_dev_handle, 0x83,test_code1,sizeof(test_code1),&transferred,timeout);
+
+	uint8_t buffer_code[] = { 0x81, 0x02, 0x01, 0x05};
+	
 	uint8_t buffer_rcode[4];
 	uint32_t *comprogram = NULL;
 	uint32_t *comflash = NULL;
+		uint8_t buffer_erase[] = { 0x81, 0x02, 0x01, 0x01};
+	// int retval = hid_write(wlink_dev_handle, buffer_erase, 65);
+	// hid_read(wlink_dev_handle, buffer_rcode, 65);
+	libusb_bulk_transfer(wlink_dev_handle, 0x02,buffer_erase,sizeof(buffer_erase),&transferred,timeout);
+	libusb_bulk_transfer(wlink_dev_handle, 0x83,buffer_rcode,sizeof(buffer_rcode),&transferred,timeout);
+	if ((*(buffer_rcode + 0) == 0x82) && (*(buffer_rcode + 1) == 0x02) && (*(buffer_rcode + 2) == 0x01) && (*(buffer_rcode + 3) == 0x01))
+	{
+		
+	}else{
+		LOG_ERROR(" ERASE FAILED");
+		return ERROR_FAIL;
+	}
+
+
+
 	if (armchip == 1)
 	{
 		comprogram = program_code1;
@@ -733,17 +755,8 @@ int wlink_armerase(void)
 		h -= 64;
 		loopcount += 64;
 	}
-	uint8_t buffer_erase[] = { 0x81, 0x02, 0x01, 0x01};
-	// int retval = hid_write(wlink_dev_handle, buffer_erase, 65);
-	// hid_read(wlink_dev_handle, buffer_rcode, 65);
-	libusb_bulk_transfer(wlink_dev_handle, 0x02,buffer_erase,sizeof(buffer_erase),&transferred,timeout);
-	libusb_bulk_transfer(wlink_dev_handle, 0x83,buffer_rcode,sizeof(buffer_rcode),&transferred,timeout);
-	if ((*(buffer_rcode + 0) == 0x82) && (*(buffer_rcode + 1) == 0x02) && (*(buffer_rcode + 2) == 0x01) && (*(buffer_rcode + 3) == 0x01))
-	{
-		return ERROR_OK;
-	}
-	LOG_ERROR(" ERASE FAILED");
-	return ERROR_FAIL;
+	return ERROR_OK;
+
 }
 int wlink_armwrite(const uint8_t *buffer, uint32_t offset, uint32_t count)
 {
