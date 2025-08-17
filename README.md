@@ -1,3 +1,24 @@
+## Build Instructions
+You need to clone the repository in order to update all configure scripts except that of jimtcl.
+```
+git clone --single-branch --depth 1 https://github.com/Seneral/riscv-openocd-wch
+cd riscv-openocd-wch
+git submodule update --init
+```
+Only then run the following: <br>
+`autoreconf -f -i` <br>
+This will re-generate configure for all riscv-openocd and all submodules <br>
+But jimtcl has its own configure script that has now been overridden. <br>
+`git submodule foreach git reset --hard` <br>
+This will reset only the jimtcl configure script since the others are not tracked. <br>
+Now, to build:
+```
+./configure --prefix=INSTALL-DIR --enable-wlinke --disable-ch347 --disable-werror CFLAGS="-Wno-incompatible-pointer-types -Wno-int-conversion -Wno-implicit-function-declaration"
+make -j $(nproc --ignore=2)
+make install
+```
+
+
 Welcome to OpenOCD!
 ===================
 
