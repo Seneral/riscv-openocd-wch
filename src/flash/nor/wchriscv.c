@@ -79,7 +79,7 @@ FLASH_BANK_COMMAND_HANDLER(ch32vx_flash_bank_command)
 static int ch32x_protect(struct flash_bank *bank, int set, int first, int last)
 {
 
-	if ((riscvchip == 1) || (riscvchip == 5) || (riscvchip == 6) || (riscvchip == 9) || (riscvchip ==0x0c))
+	if ((riscvchip == 1) || (riscvchip == 5) || (riscvchip == 6) || (riscvchip == 9) || (riscvchip ==0x0c)||(riscvchip==0x0e))
 	{
 		int retval = wlink_flash_protect(set);
 		if (retval == ERROR_OK)
@@ -107,7 +107,7 @@ static int ch32vx_erase(struct flash_bank *bank, int first, int last)
 {
 	if (pageerase)
 		return ERROR_OK;
-	if ((riscvchip == 5) || (riscvchip == 6) || (riscvchip == 9)|| (riscvchip == 0x0c))
+	if ((riscvchip == 5) || (riscvchip == 6) || (riscvchip == 9)|| (riscvchip == 0x0c)||(riscvchip==0x0e))
 	{
 		int retval = wlnik_protect_check();
 		if (retval == 4)
@@ -134,7 +134,7 @@ static int ch32vx_write(struct flash_bank *bank, const uint8_t *buffer,
 {
 	
 	struct target *target = bank->target;
-	if (((riscvchip == 5) || (riscvchip == 6) || (riscvchip == 9)|| (riscvchip == 0x0c)) && (writeloop==0))
+	if (((riscvchip == 5) || (riscvchip == 6) || (riscvchip == 9)|| (riscvchip == 0x0c)||(riscvchip==0x0e)) && (writeloop==0))
 	{
 		int retval = wlnik_protect_check();
 		if (retval == 4)
@@ -187,10 +187,17 @@ static int ch32vx_get_device_id(struct flash_bank *bank, uint32_t *device_id)
 	return ERROR_OK;
 }
 
-static int ch32vx_get_flash_size(struct flash_bank *bank, uint16_t *flash_size_in_kb)
+static int ch32vx_get_flash_size(struct flash_bank *bank, uint32_t *flash_size_in_kb)
 {
 
 	struct target *target = bank->target;
+	if(riscvchip == 0x09)
+	{
+			*flash_size_in_kb = 0x7fffe;
+		return ERROR_OK;
+
+
+	}
 	if ((riscvchip == 0x02) || (riscvchip == 0x03) || (riscvchip == 0x07)|| (riscvchip == 0x0b))
 	{
 		if((chip_type ==0x71000000) || (chip_type ==0x81000000) || (chip_type ==0x91000000))
@@ -201,7 +208,16 @@ static int ch32vx_get_flash_size(struct flash_bank *bank, uint16_t *flash_size_i
 	}
 	if (riscvchip == 0x0c)
 	{
+		if(chip_type==0x03570601)
+			*flash_size_in_kb = 48;
 		*flash_size_in_kb = 62;
+		return ERROR_OK;
+	}
+	if (riscvchip == 0x0e)
+	{
+		if(chip_type==0x10370700)
+			*flash_size_in_kb = 32;
+		*flash_size_in_kb = 64;
 		return ERROR_OK;
 	}
 	int retval = target_read_u16(target, 0x1ffff7e0, flash_size_in_kb);
@@ -214,7 +230,7 @@ static int ch32vx_probe(struct flash_bank *bank)
 {
 	struct ch32vx_flash_bank *ch32vx_info = bank->driver_priv;
 	uint16_t delfault_max_flash_size = 512;
-	uint16_t flash_size_in_kb;
+	uint32_t flash_size_in_kb;
 	uint32_t device_id = 0;
 	uint32_t rom = 0;
 	uint32_t ram = 0;
@@ -235,7 +251,7 @@ static int ch32vx_probe(struct flash_bank *bank)
 	/* get flash size from target. */
 	retval = ch32vx_get_flash_size(bank, &flash_size_in_kb);
 
-	if ((flash_size_in_kb)&&(!flash_unfreeze))
+	if ((flash_size_in_kb)&&(!flash_unfreeze)&&(riscvchip !=0x09))
 		LOG_INFO("flash size = %dkbytes", flash_size_in_kb);
 	else
 		flash_size_in_kb = delfault_max_flash_size;

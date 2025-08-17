@@ -455,7 +455,7 @@ int wch_riscv_write_by_any_size(struct target *target, target_addr_t address, ui
 {
 	assert(size == 1 || size == 2 ||  size == 4 || size == 8);
     if(address<0x20000000){
-			if(address>=0x08000000)
+			if((address>=0x08000000)&&(riscvchip!=0x09) )
 				address -= 0x08000000;
 		
 		int ret=write_flash_data(target,address,size,1,buffer);
@@ -491,7 +491,7 @@ int wch_riscv_add_breakpoint(struct target *target, struct breakpoint *breakpoin
 	LOG_TARGET_DEBUG(target, "@0x%" TARGET_PRIxADDR, breakpoint->address);
 	
 	assert(breakpoint);
-	if((riscvchip==6 ||(((uint16_t)chip_type) ==0x050c)||(riscvchip==0x0b)||(riscvchip==0x0c)) && breakpoint->type == BKPT_HARD && target->breakpoints ){
+	if((riscvchip==6 ||(((uint16_t)chip_type) ==0x050c)||(riscvchip==0x0b)||(riscvchip==0x0c)||(riscvchip==0x0e)) && breakpoint->type == BKPT_HARD && target->breakpoints ){
 			struct breakpoint *p= target->breakpoints->next;
 			int len=0;
 			while(p){

@@ -414,7 +414,7 @@ COMMAND_HANDLER(handle_flash_protect_check_command){
 	if (strncmp(p->driver->name, "wch_riscv", 9) == 0){
 		if(riscvchip==1)
 			wlink_softreset();
-		if((riscvchip==1)||(riscvchip==5)||(riscvchip==6)||(riscvchip==9)||(riscvchip==0x0c)){
+		if((riscvchip==1)||(riscvchip==5)||(riscvchip==6)||(riscvchip==9)||(riscvchip==0x0c)||(riscvchip==0x0e)){
 			int retval=wlnik_protect_check();
 			if(retval==4)
 				LOG_INFO("Code Read-Protect Status Enable");

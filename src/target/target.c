@@ -864,7 +864,7 @@ int target_run_algorithm(struct target *target,
 		int timeout_ms, void *arch_info)
 {
 	int retval = ERROR_FAIL;
-
+	
 	if (!target_was_examined(target)) {
 		LOG_ERROR("Target not examined yet");
 		goto done;
@@ -874,7 +874,7 @@ int target_run_algorithm(struct target *target,
 				target_type_name(target), __func__);
 		goto done;
 	}
-
+	
 	target->running_alg = true;
 	retval = target->type->run_algorithm(target,
 			num_mem_params, mem_params,
@@ -3102,7 +3102,7 @@ COMMAND_HANDLER(handle_reg_command)
 			unsigned i;
 
 			command_print(CMD, "===== %s", cache->name);
-
+			
 			for (i = 0, reg = cache->reg_list;
 					i < cache->num_regs;
 					i++, reg++, count++) {
@@ -3355,10 +3355,10 @@ COMMAND_HANDLER(handle_reset_command)
 	/* reset *all* targets */
 	return target_process_reset(CMD, reset_mode);
 }
-
 extern void wlink_softreset(void);
 COMMAND_HANDLER(handle_wlink_reset_resume_command)
 {
+	
 	wlink_softreset();
 }
 

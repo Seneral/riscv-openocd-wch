@@ -3915,7 +3915,7 @@ int riscv_enumerate_triggers(struct target *target)
 		result = riscv_get_register(target, &tdata1, GDB_REGNO_TDATA1);
 		if (result != ERROR_OK)
 			return result;
-
+			
 		int type = get_field(tdata1, CSR_TDATA1_TYPE(riscv_xlen(target)));
 		if (type == 0)
 			break;
@@ -4221,7 +4221,7 @@ static int cmp_csr_info(const void *p1, const void *p2)
 int riscv_init_registers(struct target *target)
 {
 	RISCV_INFO(info);
-
+	
 	riscv_free_registers(target);
 
 	target->reg_cache = calloc(1, sizeof(*target->reg_cache));
